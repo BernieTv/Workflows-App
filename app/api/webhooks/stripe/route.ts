@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     switch (event.type) {
       case "checkout.session.completed":
-        HandleCheckoutSessionCompleted(event.object);
+        HandleCheckoutSessionCompleted(event.data.object);
         break;
       default:
         break;
