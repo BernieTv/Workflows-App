@@ -6,6 +6,8 @@ import Stripe from "stripe";
 export async function HandleCheckoutSessionCompleted(
   event: Stripe.Checkout.Session
 ) {
+  console.log('SUCCESS WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW')
+  
   if (!event.metadata) {
     throw new Error("missing metadata");
   }
