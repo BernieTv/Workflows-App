@@ -14,8 +14,6 @@ export async function POST(request: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
 
-    console.log({event})
-
     switch (event.type) {
       case "checkout.session.completed":
         HandleCheckoutSessionCompleted(event.data.object);
