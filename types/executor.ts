@@ -1,6 +1,6 @@
-import { LogCollector } from "@/types/log";
-import { WorkflowTask } from "@/types/workflow";
-import { Browser, Page } from "puppeteer";
+import { LogCollector } from '@/types/log';
+import { WorkflowTask } from '@/types/workflow';
+import { Browser, Page } from 'puppeteer-core';
 
 export type Environment = {
   browser?: Browser;
@@ -17,8 +17,8 @@ export type Environment = {
 };
 
 export type ExecutionEnvironment<T extends WorkflowTask> = {
-  getInput(name: T["inputs"][number]["name"]): string;
-  setOutput(name: T["outputs"][number]["name"], value: string): void;
+  getInput(name: T['inputs'][number]['name']): string;
+  setOutput(name: T['outputs'][number]['name'], value: string): void;
 
   getBrowser(): Browser | undefined;
   setBrowser(browser: Browser): void;
