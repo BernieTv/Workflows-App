@@ -1,22 +1,20 @@
-import { waitFor } from "@/lib/helper/waitFor";
-import { createLogCollector } from "@/lib/log";
-import prisma from "@/lib/prisma";
-import { ExecutorRegistry } from "@/lib/workflow/executor/registry";
-import { TaskRegistry } from "@/lib/workflow/task/registry";
-import { AppNode } from "@/types/appNode";
-import { Environment, ExecutionEnvironment } from "@/types/executor";
-import { LogCollector } from "@/types/log";
-import { TaskParamType, TaskType } from "@/types/task";
+import { createLogCollector } from '@/lib/log';
+import prisma from '@/lib/prisma';
+import { ExecutorRegistry } from '@/lib/workflow/executor/registry';
+import { TaskRegistry } from '@/lib/workflow/task/registry';
+import { AppNode } from '@/types/appNode';
+import { Environment, ExecutionEnvironment } from '@/types/executor';
+import { LogCollector } from '@/types/log';
+import { TaskParamType } from '@/types/task';
 import {
   ExecutionPhaseStatus,
   WorkflowExecutionStatus,
-} from "@/types/workflow";
-import { ExecutionPhase } from "@prisma/client";
-import { Edge } from "@xyflow/react";
-import { revalidatePath } from "next/cache";
-import { env } from "process";
-import { Browser, Page } from "puppeteer";
-import "server-only";
+} from '@/types/workflow';
+import { ExecutionPhase } from '@prisma/client';
+import { Edge } from '@xyflow/react';
+import { revalidatePath } from 'next/cache';
+import { Browser, Page } from 'puppeteer-core';
+import 'server-only';
 
 export async function ExecuteWorkflow(executionId: string, nextRunAt?: Date) {
   const execution = await prisma.workflowExecution.findUnique({
@@ -25,7 +23,7 @@ export async function ExecuteWorkflow(executionId: string, nextRunAt?: Date) {
   });
 
   if (!execution) {
-    throw new Error("execution not found");
+    throw new Error('execution not found');
   }
 
   const edges = JSON.parse(execution.definition).edges as Edge[];
@@ -35,7 +33,7 @@ export async function ExecuteWorkflow(executionId: string, nextRunAt?: Date) {
   await initializeWorkflowExecution(
     executionId,
     execution.workflowId,
-    nextRunAt
+    nextRunAt,
   );
   await initializePhaseStatuses(execution);
 
@@ -46,7 +44,7 @@ export async function ExecuteWorkflow(executionId: string, nextRunAt?: Date) {
       phase,
       environment,
       edges,
-      execution.userId
+      execution.userId,
     );
     creditsConsumed += phaseExecution.creditsConsumed;
     if (!phaseExecution.success) {
@@ -59,17 +57,17 @@ export async function ExecuteWorkflow(executionId: string, nextRunAt?: Date) {
     executionId,
     execution.workflowId,
     executionFailed,
-    creditsConsumed
+    creditsConsumed,
   );
 
   await cleanupEnvironment(environment);
-  revalidatePath("/workflows/runs");
+  revalidatePath('/workflows/runs');
 }
 
 async function initializeWorkflowExecution(
   executionId: string,
   workflowId: string,
-  nextRunAt?: Date
+  nextRunAt?: Date,
 ) {
   await prisma.workflowExecution.update({
     where: { id: executionId },
@@ -109,7 +107,7 @@ async function finalizeWorkflowExecution(
   executionId: string,
   workflowId: string,
   executionFailed: boolean,
-  creditsConsumed: number
+  creditsConsumed: number,
 ) {
   const finalStatus = executionFailed
     ? WorkflowExecutionStatus.FAILED
@@ -145,7 +143,7 @@ async function executeWorkflowPhase(
   phase: ExecutionPhase,
   environment: Environment,
   edges: Edge[],
-  userId: string
+  userId: string,
 ) {
   const logCollector = createLogCollector();
   const startedAt = new Date();
@@ -176,7 +174,7 @@ async function executeWorkflowPhase(
     success,
     outputs,
     logCollector,
-    creditsConsumed
+    creditsConsumed,
   );
   return { success, creditsConsumed };
 }
@@ -186,7 +184,7 @@ async function finalizePhase(
   success: boolean,
   outputs: any,
   logCollector: LogCollector,
-  creditsConsumed: number
+  creditsConsumed: number,
 ) {
   const finalStatus = success
     ? ExecutionPhaseStatus.COMPLETED
@@ -218,7 +216,7 @@ async function executePhase(
   phase: ExecutionPhase,
   node: AppNode,
   environment: Environment,
-  logCollector: LogCollector
+  logCollector: LogCollector,
 ): Promise<boolean> {
   const runFn = ExecutorRegistry[node.data.type];
   if (!runFn) {
@@ -235,7 +233,7 @@ async function executePhase(
 function setupEnvironmentForPhase(
   node: AppNode,
   environment: Environment,
-  edges: Edge[]
+  edges: Edge[],
 ) {
   environment.phases[node.id] = { inputs: {}, outputs: {} };
   const inputs = TaskRegistry[node.data.type].inputs;
@@ -249,11 +247,11 @@ function setupEnvironmentForPhase(
 
     // Get input value from outputs in the environment
     const connectedEdge = edges.find(
-      (edge) => edge.target === node.id && edge.targetHandle === input.name
+      (edge) => edge.target === node.id && edge.targetHandle === input.name,
     );
 
     if (!connectedEdge) {
-      console.error("Missing edge for input", input.name, "node id:", node.id);
+      console.error('Missing edge for input', input.name, 'node id:', node.id);
       continue;
     }
 
@@ -269,7 +267,7 @@ function setupEnvironmentForPhase(
 function createExecutionEnvironment(
   node: AppNode,
   environment: Environment,
-  logCollector: LogCollector
+  logCollector: LogCollector,
 ): ExecutionEnvironment<any> {
   return {
     getInput: (name: string) => environment.phases[node.id]?.inputs[name],
@@ -291,14 +289,14 @@ async function cleanupEnvironment(environment: Environment) {
   if (environment.browser) {
     await environment.browser
       .close()
-      .catch((err) => console.error("cannot close browser, reason:", err));
+      .catch((err) => console.error('cannot close browser, reason:', err));
   }
 }
 
 async function decrementCredits(
   userId: string,
   amount: number,
-  logCollector: LogCollector
+  logCollector: LogCollector,
 ) {
   try {
     await prisma.userBalance.update({
@@ -307,7 +305,7 @@ async function decrementCredits(
     });
     return true;
   } catch (error) {
-    logCollector.error("insufficient balance");
+    logCollector.error('insufficient balance');
     return false;
   }
 }
