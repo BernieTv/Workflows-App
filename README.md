@@ -26,7 +26,7 @@ This Full Stack SaaS application allows users to visually build, manage, and sch
 
 -   **💻 Node.js** (v16 or later)
 -   **📊 PostgreSQL** database
--   **🔧 API Key for OpenAI
+-   **🔧 API Key for OpenAI**
 
 ### 🔎 Steps
 
